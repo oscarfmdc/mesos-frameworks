@@ -103,7 +103,6 @@ public class ExampleExecutor implements Executor {
     }
 
     public static void main(String[] args) {
-        System.out.println("asdasdasdasd");
         MesosExecutorDriver driver = new MesosExecutorDriver(new ExampleExecutor());
         System.exit(driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1);
     }

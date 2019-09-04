@@ -153,6 +153,8 @@ import com.google.protobuf.ByteString;
 public class ExampleScheduler implements Scheduler {
 
     private int taskIdCounter = 0;
+    private int finishedTasks = 0;
+    private int totalTasks = 2;
     private Protos.ExecutorInfo executorInfo;
 
     public ExampleScheduler(Protos.ExecutorInfo executorInfo) {
@@ -201,19 +203,24 @@ public class ExampleScheduler implements Scheduler {
     public void resourceOffers(SchedulerDriver schedulerDriver, List<Protos.Offer> offers) {
 
         for (Protos.Offer offer : offers) {
+
+            if (taskIdCounter < totalTasks) {
+
+                Protos.TaskID taskId = buildNewTaskID();
+                Protos.TaskInfo task = Protos.TaskInfo.newBuilder()
+                        .setName("task " + taskId).setTaskId(taskId)
+                        .setSlaveId(offer.getSlaveId())
+                        .addResources(buildResource("cpus", 0.5))
+                        .addResources(buildResource("mem", 128))
+                        .setData(ByteString.copyFromUtf8("" + taskIdCounter))
+                        .setExecutor(Protos.ExecutorInfo.newBuilder(executorInfo))
+                        .build();
+
+                launchTask(schedulerDriver, offer, task);
+
+            }
 //            System.out.println("Offer: " + offer);
 
-            Protos.TaskID taskId = buildNewTaskID();
-            Protos.TaskInfo task = Protos.TaskInfo.newBuilder()
-                    .setName("task " + taskId).setTaskId(taskId)
-                    .setSlaveId(offer.getSlaveId())
-                    .addResources(buildResource("cpus", 1))
-                    .addResources(buildResource("mem", 128))
-                    .setData(ByteString.copyFromUtf8("" + taskIdCounter))
-                    .setExecutor(Protos.ExecutorInfo.newBuilder(executorInfo))
-                    .build();
-
-            launchTask(schedulerDriver, offer, task);
         }
     }
 
@@ -275,15 +282,13 @@ public class ExampleScheduler implements Scheduler {
         System.out.println("Status update: task " + taskStatus.getTaskId().getValue() +
                 " is in state " + taskStatus.getState().getValueDescriptor().getName());
 
-/*
         if (taskStatus.getState() == TaskState.TASK_FINISHED) {
             finishedTasks++;
             System.out.println("Finished tasks: " + finishedTasks);
             if (finishedTasks == totalTasks) {
-                driver.stop();
+                schedulerDriver.stop();
             }
         }
-*/
 
         if (taskStatus.getState() == TaskState.TASK_LOST ||
                 taskStatus.getState() == TaskState.TASK_KILLED ||
