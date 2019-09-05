@@ -13,11 +13,6 @@ https://github.com/apache/incubator-myriad/tree/master/vagrant/libvirt/mesos
 
 ### Installing
 
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
-
 ```
 gradle build
 
